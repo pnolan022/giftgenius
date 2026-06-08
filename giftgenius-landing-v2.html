@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GiftGenius — AI Gift Ideas They'll Actually Love</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' rx='12' fill='%232d1a0e'/%3E%3Crect x='8' y='30' width='40' height='20' rx='3' fill='%23fdf6ee' stroke='%232d1a0e' stroke-width='2'/%3E%3Crect x='8' y='18' width='40' height='15' rx='3' fill='%23e8622a'/%3E%3Crect x='24' y='18' width='8' height='32' fill='%23f9c974'/%3E%3Cpath d='M28 18 C28 18 17 12 13 5 C20 3 26 11 28 18Z' fill='%23f9c974'/%3E%3Cpath d='M28 18 C28 18 39 12 43 5 C36 3 30 11 28 18Z' fill='%23fff' opacity='0.85'/%3E%3Ccircle cx='28' cy='18' r='4' fill='%232d1a0e'/%3E%3C/svg%3E"/>
+<style>
+:root{--cream:#faf5ee;--warm:#f2e4cc;--rust:#c95f2a;--rust-deep:#a04520;--bark:#2d1a0e;--sand:#a07850;--sand-light:#c8a87a;--gold:#f9c974}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--bark);overflow-x:hidden}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,245,238,0.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(160,120,80,0.12)}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo svg{width:32px;height:32px}
+.nav-logo-text{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--bark);letter-spacing:-0.3px}
+.nav-logo-text span{color:var(--rust)}
+.nav-cta{background:var(--bark);color:#fff;padding:10px 22px;border-radius:100px;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.2px;transition:background 0.2s,transform 0.2s}
+.nav-cta:hover{background:var(--rust);transform:translateY(-1px)}
+.hero{min-height:100vh;display:flex;align-items:center;padding:120px 48px 80px;position:relative;overflow:hidden}
+.hero-blob{position:absolute;border-radius:50%;pointer-events:none}
+.hero-blob-1{width:600px;height:600px;background:radial-gradient(circle,rgba(249,201,116,0.35) 0%,transparent 70%);top:-100px;right:-100px;animation:float 9s ease-in-out infinite}
+.hero-blob-2{width:400px;height:400px;background:radial-gradient(circle,rgba(242,139,80,0.25) 0%,transparent 70%);bottom:-50px;left:-50px;animation:float 11s ease-in-out infinite reverse}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+.hero-content{max-width:620px;position:relative;z-index:1;animation:fadeUp 0.9s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--warm);border:1px solid rgba(160,120,80,0.3);padding:6px 16px;border-radius:100px;font-size:12px;font-weight:600;color:var(--sand);margin-bottom:28px;letter-spacing:0.5px;text-transform:uppercase}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--rust)}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,7.5vw,82px);line-height:1.02;font-weight:700;color:var(--bark);margin-bottom:22px;letter-spacing:-1.5px}
+h1 em{font-style:italic;color:var(--rust)}
+.hero-sub{font-size:17px;color:var(--sand);line-height:1.7;max-width:460px;margin-bottom:40px;font-weight:300}
+.hero-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.btn-primary{background:var(--rust);color:#fff;padding:15px 34px;border-radius:100px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.2px;box-shadow:0 8px 28px rgba(201,95,42,0.3);transition:all 0.2s}
+.btn-primary:hover{background:var(--rust-deep);transform:translateY(-2px);box-shadow:0 12px 36px rgba(201,95,42,0.38)}
+.btn-ghost{color:var(--sand);font-size:14px;font-weight:500;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;letter-spacing:0.2px}
+.btn-ghost:hover{color:var(--bark)}
+.btn-ghost::after{content:'↓'}
+.hero-stats{display:flex;gap:44px;margin-top:60px;padding-top:44px;border-top:1px solid rgba(160,120,80,0.2)}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:var(--bark);line-height:1}
+.stat-label{font-size:12px;color:var(--sand);margin-top:4px;font-weight:500;letter-spacing:0.3px}
+.hero-right{position:absolute;right:52px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;animation:fadeUp 1s 0.4s ease both}
+@media(max-width:900px){.hero-right{display:none}}
+.gift-pill{background:#fff;border:1px solid rgba(160,120,80,0.15);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;width:230px}
+.gift-pill:nth-child(1){margin-left:28px}
+.gift-pill:nth-child(3){margin-left:18px}
+.gift-pill:nth-child(4){margin-left:36px}
+.pill-icon{width:36px;height:36px;border-radius:10px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pill-name{font-size:13px;font-weight:600;color:var(--bark)}
+.pill-price{font-size:11px;color:var(--rust);font-weight:500;margin-top:2px}
+.section{padding:96px 48px;max-width:1080px;margin:0 auto}
+.section-eyebrow{font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--rust);margin-bottom:14px}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,4.5vw,52px);font-weight:700;color:var(--bark);line-height:1.08;margin-bottom:56px;letter-spacing:-0.5px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:24px}
+.step{padding:28px 24px;background:#fff;border-radius:18px;border:1px solid rgba(160,120,80,0.15);transition:transform 0.2s}
+.step:hover{transform:translateY(-4px)}
+.step-num{font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:700;color:var(--warm);line-height:1;margin-bottom:14px}
+.step-title{font-size:16px;font-weight:600;color:var(--bark);margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--sand);line-height:1.7}
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.features-grid{grid-template-columns:1fr}}
+.feature-card{padding:28px;border-radius:18px;border:1px solid rgba(160,120,80,0.15);background:#fff;transition:transform 0.2s}
+.feature-card:hover{transform:translateY(-3px)}
+.feature-card.accent{background:var(--bark);border-color:var(--bark)}
+.feature-icon{width:40px;height:40px;border-radius:10px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+.feature-card.accent .feature-icon{background:rgba(255,255,255,0.1)}
+.feature-title{font-size:17px;font-weight:600;color:var(--bark);margin-bottom:6px}
+.feature-card.accent .feature-title{color:#fff}
+.feature-desc{font-size:13px;color:var(--sand);line-height:1.7}
+.feature-card.accent .feature-desc{color:rgba(255,255,255,0.55)}
+.testimonials{background:var(--bark);padding:80px 48px;text-align:center}
+.testimonials .section-eyebrow{color:var(--sand-light)}
+.testimonials .section-title{color:#fff;margin-bottom:44px}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:960px;margin:0 auto}
+.testi-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;text-align:left}
+.testi-stars{color:var(--gold);font-size:13px;margin-bottom:12px;letter-spacing:2px}
+.testi-text{font-size:14px;color:rgba(255,255,255,0.75);line-height:1.7;margin-bottom:14px;font-style:italic}
+.testi-name{font-size:12px;font-weight:600;color:var(--sand-light);letter-spacing:0.3px}
+.cta-section{padding:96px 48px;text-align:center;background:linear-gradient(160deg,var(--cream) 0%,var(--warm) 100%)}
+.cta-big{background:var(--rust);color:#fff;padding:18px 48px;border-radius:100px;font-size:16px;font-weight:600;text-decoration:none;letter-spacing:0.2px;box-shadow:0 12px 40px rgba(201,95,42,0.35);display:inline-block;transition:all 0.2s}
+.cta-big:hover{background:var(--rust-deep);transform:translateY(-3px)}
+.cta-sub{font-size:16px;color:var(--sand);margin-bottom:36px;font-weight:300;line-height:1.6}
+.cta-fine{font-size:12px;color:var(--sand-light);margin-top:18px}
+footer{background:var(--bark);color:rgba(255,255,255,0.35);padding:28px 48px;display:flex;justify-content:space-between;align-items:center;font-size:12px;flex-wrap:wrap;gap:10px;letter-spacing:0.2px}
+.footer-logo{display:flex;align-items:center;gap:8px}
+.footer-logo svg{width:24px;height:24px}
+.footer-logo-text{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:rgba(255,255,255,0.6)}
+@media(max-width:600px){nav{padding:16px 20px}.hero{padding:96px 20px 56px}.section{padding:56px 20px}footer{padding:20px;flex-direction:column;text-align:center}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">
+    <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+      <rect width="56" height="56" rx="12" fill="#2d1a0e"/>
+      <rect x="8" y="30" width="40" height="20" rx="3" fill="#fdf6ee" stroke="#2d1a0e" stroke-width="2"/>
+      <rect x="8" y="18" width="40" height="15" rx="3" fill="#e8622a"/>
+      <rect x="24" y="18" width="8" height="32" fill="#f9c974"/>
+      <path d="M28 18 C28 18 17 12 13 5 C20 3 26 11 28 18Z" fill="#f9c974"/>
+      <path d="M28 18 C28 18 39 12 43 5 C36 3 30 11 28 18Z" fill="#fff" opacity="0.85"/>
+      <circle cx="28" cy="18" r="4" fill="#2d1a0e"/>
+    </svg>
+    <div class="nav-logo-text">Gift<span>Genius</span></div>
+  </div>
+  <a href="gift-recommender-v3.jsx" class="nav-cta">Try Free</a>
+</nav>
+<section class="hero">
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><div class="hero-badge-dot"></div>Powered by AI &nbsp;·&nbsp; Free to start</div>
+    <h1>Gifts they'll<br/><em>actually</em> love.</h1>
+    <p class="hero-sub">Stop stressing over what to buy. Describe the person, get 6 perfect, buyable gift ideas in seconds.</p>
+    <div class="hero-actions">
+      <a href="gift-recommender-v3.jsx" class="btn-primary">✨ Find a Gift Now</a>
+      <a href="#how" class="btn-ghost">See how it works</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">6</div><div class="stat-label">Ideas per search</div></div>
+      <div><div class="stat-num">10s</div><div class="stat-label">Average time</div></div>
+      <div><div class="stat-num">Free</div><div class="stat-label">No signup needed</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="gift-pill"><div class="pill-icon">📚</div><div><div class="pill-name">Kindle Paperwhite</div><div class="pill-price">~$140</div></div></div>
+    <div class="gift-pill"><div class="pill-icon">🍳</div><div><div class="pill-name">Cast Iron Skillet Set</div><div class="pill-price">~$45</div></div></div>
+    <div class="gift-pill"><div class="pill-icon">🎧</div><div><div class="pill-name">Noise-cancelling Headphones</div><div class="pill-price">~$80</div></div></div>
+    <div class="gift-pill"><div class="pill-icon">🌿</div><div><div class="pill-name">Succulent Garden Kit</div><div class="pill-price">~$30</div></div></div>
+  </div>
+</section>
+<section class="section" id="how">
+  <div class="section-eyebrow">How it works</div>
+  <div class="section-title">Three steps to the<br/>perfect gift.</div>
+  <div class="steps">
+    <div class="step"><div class="step-num">01</div><div class="step-title">Describe the person</div><div class="step-desc">Tell us the occasion, relationship, age, interests, and budget. Takes under a minute.</div></div>
+    <div class="step"><div class="step-num">02</div><div class="step-title">AI-powered ideas, tailored to them</div><div class="step-desc">Our AI generates 6 thoughtful, specific gift ideas tailored to exactly who you're shopping for.</div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-title">Buy in one click</div><div class="step-desc">Every gift links directly to Amazon. Save your list, share it, or set a reminder for next time.</div></div>
+    <div class="step"><div class="step-num">04</div><div class="step-title">Never stress again</div><div class="step-desc">Save lists for everyone you love. Get reminded before every birthday, anniversary, or holiday.</div></div>
+  </div>
+</section>
+<section class="section" style="padding-top:0">
+  <div class="section-eyebrow">Features</div>
+  <div class="section-title">Everything you need<br/>to gift with confidence.</div>
+  <div class="features-grid">
+    <div class="feature-card accent"><div class="feature-icon">🤖</div><div class="feature-title">Hyper-personalised AI</div><div class="feature-desc">Not generic lists — ideas crafted around the specific person, their personality, and the moment.</div></div>
+    <div class="feature-card"><div class="feature-icon">🛒</div><div class="feature-title">Buy instantly on Amazon</div><div class="feature-desc">Every recommendation links directly to Amazon so you can order in one click, no searching required.</div></div>
+    <div class="feature-card"><div class="feature-icon">💾</div><div class="feature-title">Save your gift lists</div><div class="feature-desc">Keep a wishlist for everyone in your life. Revisit, share, and check off gifts as you buy them.</div></div>
+    <div class="feature-card"><div class="feature-icon">🔔</div><div class="feature-title">Occasion reminders</div><div class="feature-desc">Never forget a birthday or anniversary. Get notified before the big day so you have time to shop.</div></div>
+  </div>
+</section>
+<section class="testimonials">
+  <div class="section-eyebrow">What people say</div>
+  <div class="section-title">They stopped stressing.<br/>So can you.</div>
+  <div class="testi-grid">
+    <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"I found the perfect gift for my dad in literally 10 seconds. He loved it. I'm never googling 'gift ideas' again."</div><div class="testi-name">Sarah M. &nbsp;·&nbsp; Birthday gift</div></div>
+    <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"The ideas were so specific and thoughtful — way better than anything I'd have come up with myself."</div><div class="testi-name">James K. &nbsp;·&nbsp; Anniversary gift</div></div>
+    <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"Used this for my whole Christmas list. Got 8 people sorted in under 20 minutes. Absolute lifesaver."</div><div class="testi-name">Priya T. &nbsp;·&nbsp; Christmas gifts</div></div>
+  </div>
+</section>
+<section class="cta-section">
+  <div class="section-eyebrow">Ready?</div>
+  <div class="section-title">Find the perfect gift<br/>in seconds.</div>
+  <p class="cta-sub">Free to use. No signup required. Just great gift ideas.</p>
+  <a href="gift-recommender-v3.jsx" class="cta-big">✨ Try GiftGenius Free</a>
+  <p class="cta-fine">As an Amazon Associate, GiftGenius earns from qualifying purchases.</p>
+</section>
+<footer>
+  <div class="footer-logo">
+    <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+      <rect width="56" height="56" rx="12" fill="#e8622a"/>
+      <rect x="8" y="30" width="40" height="20" rx="3" fill="#fff" stroke="#e8622a" stroke-width="1.5"/>
+      <rect x="8" y="18" width="40" height="15" rx="3" fill="#f9c974"/>
+      <rect x="24" y="18" width="8" height="32" fill="#e8622a"/>
+      <path d="M28 18 C28 18 17 12 13 5 C20 3 26 11 28 18Z" fill="#fff"/>
+      <path d="M28 18 C28 18 39 12 43 5 C36 3 30 11 28 18Z" fill="#f9c974"/>
+      <circle cx="28" cy="18" r="4" fill="#e8622a"/>
+    </svg>
+    <div class="footer-logo-text">GiftGenius</div>
+  </div>
+  <div>© 2026 GiftGenius · All rights reserved</div>
+  <div>Amazon Associate · Earnings from qualifying purchases</div>
+</footer>
+</body>
+</html>
