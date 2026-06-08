@@ -14,7 +14,6 @@
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect } = React;
-const GROQ_KEY = "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";
 const AFFILIATE_TAG = "giftgenius0de-20";
 const FREE_SEARCHES = 3;
 const PRO_PRICE = "$6.99/mo";
@@ -55,7 +54,7 @@ function toggleInterest(interest){setForm(f=>({...f,interests:f.interests.includ
 async function getRecommendations(){if(!form.occasion||!form.relationship||!form.budget){setError("Please fill in occasion, relationship, and budget.");return;}if(!isPro&&searches>=FREE_SEARCHES){setShowPaywall(true);return;}setError("");setStep(1);
 const prompt=`You are a thoughtful gift advisor. Suggest 6 specific, creative, and buyable gift ideas.\nPerson details:\n- Occasion: ${form.occasion}\n- Relationship: ${form.relationship}\n- Budget: ${form.budget}\n- Age: ${form.age||"unknown"}\n- Interests: ${form.interests.length?form.interests.join(", "):"not specified"}\n- Notes: ${form.personality||"none"}\nReturn ONLY a valid JSON array (no markdown, no preamble) with exactly this structure:\n[{"name":"Gift name","description":"2 sentence description","price":"Estimated price range","amazonQuery":"Amazon search query","emoji":"Single emoji"}]`;
 try{
-const res=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},body:JSON.stringify({model:"llama3-70b-8192",messages:[{role:"user",content:prompt}],temperature:0.7})});
+const res=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"llama3-70b-8192",messages:[{role:"user",content:prompt}],temperature:0.7})});
 const data=await res.json();
 const text=data.choices[0].message.content;
 const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
