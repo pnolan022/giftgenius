@@ -14,11 +14,12 @@
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect } = React;
+const GEMINI_KEY = "AIzaSyAQ.Ab8RN6JrtyXjtPMSTdC499NZwtGDOQKCXY7rAKcaogJJIzqfAQ";
 const AFFILIATE_TAG = "giftgenius0de-20";
 const FREE_SEARCHES = 3;
 const PRO_PRICE = "$6.99/mo";
 const occasions = ["Birthday","Christmas","Anniversary","Wedding","Baby Shower","Graduation","Valentine's Day","Father's Day","Mother's Day","Just Because","Kids Travel Entertainment","Rainy Day Entertainment","Gifts for Sisters Together","Gifts for Brothers Together","Gifts for Boy & Girl Siblings"];
-const relationships = ["Partner/Spouse","Mom","Dad","Sister","Brother","Best Friend","Colleague","Child","Grandparent","Teacher","Siblings (Girls)","Siblings (Boys)","Siblings (Mixed)"];
+const relationships = ["Partner/Spouse","Mom","Dad","Sister","Brother","Best Friend","Colleague","Child (Boy)","Child (Girl)","Grandparent","Teacher","Siblings (Girls)","Siblings (Boys)","Siblings (Mixed)"];
 const budgets = ["Under $25","$25–$50","$50–$100","$100–$200","No limit"];
 const interests = ["Tech & Gadgets","Books & Reading","Fitness & Outdoors","Cooking & Food","Art & Crafts","Fashion & Beauty","Gaming","Travel","Music","Gardening","Home & Decor","Sports","Kids & Family","Puzzles & Games"];
 const PRO_FEATURES = [
@@ -51,9 +52,16 @@ const[saveMsg,setSaveMsg]=useState("");
 const[shareMsg,setShareMsg]=useState("");
 useEffect(()=>{try{const params=new URLSearchParams(window.location.search);const shared=params.get("shared");if(shared){const data=JSON.parse(atob(shared));setGifts(data.gifts);setForm(f=>({...f,occasion:data.occasion,relationship:data.relationship,budget:data.budget}));setStep(2);}}catch{}},[]);
 function toggleInterest(interest){setForm(f=>({...f,interests:f.interests.includes(interest)?f.interests.filter(i=>i!==interest):f.interests.length<4?[...f.interests,interest]:f.interests}));}
-async function getRecommendations(){if(!form.occasion||!form.relationship||!form.budget){setError("Please fill in occasion, relationship, and budget.");return;}if(!isPro&&searches>=FREE_SEARCHES){setShowPaywall(true);return;}setError("");setStep(1);const prompt=`You are a thoughtful gift advisor. Suggest 6 specific, creative, and buyable gift ideas.\nPerson details:\n- Occasion: ${form.occasion}\n- Relationship: ${form.relationship}\n- Budget: ${form.budget}\n- Age: ${form.age||"unknown"}\n- Interests: ${form.interests.length?form.interests.join(", "):"not specified"}\n- Notes: ${form.personality||"none"}\nReturn ONLY a valid JSON array (no markdown) with exactly this structure:\n[{"name":"Gift name","description":"2 sentence description","price":"Estimated price range","amazonQuery":"Amazon search query","emoji":"Single emoji"}]`;
-try{const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});const data=await res.json();const text=data.content.map(b=>b.text||"").join("");const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());setGifts(parsed);setSearches(n=>n+1);setStep(2);}catch{setError("Something went wrong. Please try again.");setStep(0);}}
-function saveList(){if(!isPro){setShowPaywall(true);return;}setSavedLists(prev=>[{id:Date.now(),label:`${form.relationship} · ${form.occasion}`,gifts,savedAt:new Date().toLocaleDateString(),checked:[]}, ...prev]);setSaveMsg("✓ Saved!");setTimeout(()=>setSaveMsg(""),2500);}
+async function getRecommendations(){if(!form.occasion||!form.relationship||!form.budget){setError("Please fill in occasion, relationship, and budget.");return;}if(!isPro&&searches>=FREE_SEARCHES){setShowPaywall(true);return;}setError("");setStep(1);
+const prompt=`You are a thoughtful gift advisor. Suggest 6 specific, creative, and buyable gift ideas.\nPerson details:\n- Occasion: ${form.occasion}\n- Relationship: ${form.relationship}\n- Budget: ${form.budget}\n- Age: ${form.age||"unknown"}\n- Interests: ${form.interests.length?form.interests.join(", "):"not specified"}\n- Notes: ${form.personality||"none"}\nReturn ONLY a valid JSON array (no markdown, no preamble) with exactly this structure:\n[{"name":"Gift name","description":"2 sentence description","price":"Estimated price range","amazonQuery":"Amazon search query","emoji":"Single emoji"}]`;
+try{
+const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+const data=await res.json();
+const text=data.candidates[0].content.parts[0].text;
+const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
+setGifts(parsed);setSearches(n=>n+1);setStep(2);
+}catch(e){setError("Something went wrong. Please try again.");setStep(0);}}
+function saveList(){if(!isPro){setShowPaywall(true);return;}setSavedLists(prev=>[{id:Date.now(),label:`${form.relationship} · ${form.occasion}`,gifts,savedAt:new Date().toLocaleDateString(),checked:[]},...prev]);setSaveMsg("✓ Saved!");setTimeout(()=>setSaveMsg(""),2500);}
 function shareList(){if(!isPro){setShowPaywall(true);return;}try{const payload=btoa(JSON.stringify({gifts,occasion:form.occasion,relationship:form.relationship,budget:form.budget}));navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?shared=${payload}`);setShareMsg("✓ Link copied!");setTimeout(()=>setShareMsg(""),3000);}catch{setShareMsg("Could not copy.");setTimeout(()=>setShareMsg(""),3000);}}
 function toggleCheck(listId,giftName){setSavedLists(prev=>prev.map(l=>l.id!==listId?l:{...l,checked:l.checked.includes(giftName)?l.checked.filter(g=>g!==giftName):[...l.checked,giftName]}));}
 function reset(){setStep(0);setGifts([]);setForm({occasion:"",relationship:"",budget:"",age:"",interests:[],personality:""});}
