@@ -1,6 +1,6 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/giftgenius-landing-v2.html" },
-    { "source": "/app", "destination": "/gift-recommender-v3.jsx" }
+    { "source": "/app", "destination": "/app.html" }
   ]
 }
