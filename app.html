@@ -14,391 +14,81 @@
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect } = React;
-
 const AFFILIATE_TAG = "giftgenius0de-20";
 const FREE_SEARCHES = 3;
 const PRO_PRICE = "$6.99/mo";
-
-const occasions = [
-  "Birthday", "Christmas", "Anniversary", "Wedding", "Baby Shower",
-  "Graduation", "Valentine's Day", "Father's Day", "Mother's Day", "Just Because",
-  "Kids Travel Entertainment", "Rainy Day Entertainment",
-  "Gifts for Sisters Together", "Gifts for Brothers Together", "Gifts for Boy & Girl Siblings",
-];
-
-const relationships = [
-  "Partner/Spouse", "Mom", "Dad", "Sister", "Brother",
-  "Best Friend", "Colleague", "Child", "Grandparent", "Teacher",
-  "Siblings (Girls)", "Siblings (Boys)", "Siblings (Mixed)",
-];
-
-const budgets = ["Under $25", "$25–$50", "$50–$100", "$100–$200", "No limit"];
-
-const interests = [
-  "Tech & Gadgets", "Books & Reading", "Fitness & Outdoors", "Cooking & Food",
-  "Art & Crafts", "Fashion & Beauty", "Gaming", "Travel", "Music",
-  "Gardening", "Home & Decor", "Sports", "Kids & Family", "Puzzles & Games",
-];
-
+const occasions = ["Birthday","Christmas","Anniversary","Wedding","Baby Shower","Graduation","Valentine's Day","Father's Day","Mother's Day","Just Because","Kids Travel Entertainment","Rainy Day Entertainment","Gifts for Sisters Together","Gifts for Brothers Together","Gifts for Boy & Girl Siblings"];
+const relationships = ["Partner/Spouse","Mom","Dad","Sister","Brother","Best Friend","Colleague","Child","Grandparent","Teacher","Siblings (Girls)","Siblings (Boys)","Siblings (Mixed)"];
+const budgets = ["Under $25","$25–$50","$50–$100","$100–$200","No limit"];
+const interests = ["Tech & Gadgets","Books & Reading","Fitness & Outdoors","Cooking & Food","Art & Crafts","Fashion & Beauty","Gaming","Travel","Music","Gardening","Home & Decor","Sports","Kids & Family","Puzzles & Games"];
 const PRO_FEATURES = [
-  { icon: "♾️", title: "Unlimited Searches", desc: "No monthly cap. Search for every person on your list, any time." },
-  { icon: "💾", title: "Save Gift Lists", desc: "Keep a wishlist for everyone you love. Check off gifts as you buy." },
-  { icon: "🔔", title: "Occasion Reminders", desc: "Set a date and we'll remind you before every birthday, anniversary, or holiday." },
-  { icon: "🔗", title: "Share by Link", desc: "Send a gift list to a co-worker or family member with one tap." },
-  { icon: "🎯", title: "Priority AI", desc: "Faster, more detailed recommendations with extra personalisation." },
-  { icon: "✨", title: "No Ads. Ever.", desc: "A completely clean, distraction-free gifting experience." },
+  {icon:"♾️",title:"Unlimited Searches",desc:"No monthly cap. Search for every person on your list, any time."},
+  {icon:"💾",title:"Save Gift Lists",desc:"Keep a wishlist for everyone you love. Check off gifts as you buy."},
+  {icon:"🔔",title:"Occasion Reminders",desc:"Set a date and we'll remind you before every birthday, anniversary, or holiday."},
+  {icon:"🔗",title:"Share by Link",desc:"Send a gift list to a co-worker or family member with one tap."},
+  {icon:"🎯",title:"Priority AI",desc:"Faster, more detailed recommendations with extra personalisation."},
+  {icon:"✨",title:"No Ads. Ever.",desc:"A completely clean, distraction-free gifting experience."}
 ];
-
-function AmazonLink({ query, tag }) {
-  const url = `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${tag}`;
-  return <a href={url} target="_blank" rel="noopener noreferrer" style={s.buyBtn}>🛒 Find on Amazon</a>;
-}
-
-function Section({ title, children }) {
-  return <div style={s.section}><div style={s.sectionTitle}>{title}</div>{children}</div>;
-}
-
-function ChipGroup({ options, value, onSelect }) {
-  return (
-    <div style={s.chipGrid}>
-      {options.map(o => (
-        <button key={o} onClick={() => onSelect(o)} style={{ ...s.chip, ...(value === o ? s.chipActive : {}) }}>{o}</button>
-      ))}
-    </div>
-  );
-}
-
-function MultiChip({ options, selected, onToggle, max }) {
-  return (
-    <div style={s.chipGrid}>
-      {options.map(o => (
-        <button key={o} onClick={() => onToggle(o)} style={{ ...s.chip, ...(selected.includes(o) ? s.chipActive : {}) }}>{o}</button>
-      ))}
-      {max && <div style={s.chipHint}>Pick up to {max}</div>}
-    </div>
-  );
-}
-
-function ProModal({ onClose, onUpgrade }) {
-  return (
-    <div style={s.overlay}>
-      <div style={s.modal}>
-        <div style={s.modalGlow} />
-        <button onClick={onClose} style={s.modalClose}>✕</button>
-        <div style={s.proIcon}>👑</div>
-        <h2 style={s.proTitle}>Unlock GiftGenius Pro</h2>
-        <p style={s.proSub}>You've used your <strong>3 free searches</strong>. Upgrade to Pro and never stress about gifts again.</p>
-        <div style={s.proFeatureGrid}>
-          {PRO_FEATURES.map(f => (
-            <div key={f.title} style={s.proFeatureRow}>
-              <span style={s.proFeatureIcon}>{f.icon}</span>
-              <div>
-                <div style={s.proFeatureName}>{f.title}</div>
-                <div style={s.proFeatureDesc}>{f.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={s.proPriceBox}>
-          <div style={s.proPriceLabel}>Everything above for just</div>
-          <div style={s.proPrice}>{PRO_PRICE}</div>
-          <div style={s.proPriceSub}>Cancel any time. No hidden fees.</div>
-        </div>
-        <button onClick={onUpgrade} style={s.proUpgradeBtn}>👑 Start Pro — {PRO_PRICE}</button>
-        <button onClick={onClose} style={s.proSkipBtn}>Maybe later</button>
-        <p style={s.proFineprint}>🔒 Secure checkout · Instant access · 7-day money-back guarantee</p>
-      </div>
-    </div>
-  );
-}
-
-function ReminderModal({ listLabel, onClose, onSave }) {
-  const [date, setDate] = useState("");
-  const [name, setName] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  function handleSave() {
-    if (!date) return;
-    onSave({ label: listLabel, name, date });
-    setSaved(true);
-    if ("Notification" in window) {
-      Notification.requestPermission().then(perm => {
-        if (perm === "granted") {
-          const ms = new Date(date).getTime() - Date.now() - 24 * 60 * 60 * 1000;
-          if (ms > 0) setTimeout(() => new Notification("🎁 GiftGenius Reminder", { body: `Don't forget — ${name || listLabel} is tomorrow!` }), ms);
-        }
-      });
-    }
-  }
-
-  return (
-    <div style={s.overlay}>
-      <div style={{ ...s.modal, maxWidth: "420px" }}>
-        <button onClick={onClose} style={s.modalClose}>✕</button>
-        {!saved ? (
-          <>
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>🔔</div>
-            <h2 style={s.proTitle}>Set a Reminder</h2>
-            <p style={{ ...s.proSub, marginBottom: "24px" }}>We'll remind you the day before so you have time to shop.</p>
-            <input placeholder="Who is it for? (e.g. Mum's Birthday)" value={name} onChange={e => setName(e.target.value)} style={{ ...s.inputFull, marginBottom: "12px" }} />
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ ...s.inputFull, marginBottom: "20px" }} />
-            <button onClick={handleSave} style={s.proUpgradeBtn} disabled={!date}>🔔 Set Reminder</button>
-          </>
-        ) : (
-          <>
-            <div style={{ fontSize: "48px", marginBottom: "12px" }}>✅</div>
-            <h2 style={s.proTitle}>Reminder Set!</h2>
-            <p style={s.proSub}>We'll remind you the day before <strong>{name || "the occasion"}</strong> on <strong>{date}</strong>.</p>
-            <button onClick={onClose} style={{ ...s.proUpgradeBtn, marginTop: "20px" }}>Done</button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function GiftRecommender() {
-  const [tab, setTab] = useState("find");
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState({ occasion: "", relationship: "", budget: "", age: "", interests: [], personality: "" });
-  const [gifts, setGifts] = useState([]);
-  const [savedLists, setSavedLists] = useState([]);
-  const [reminders, setReminders] = useState([]);
-  const [searches, setSearches] = useState(0);
-  const [isPro, setIsPro] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [showReminder, setShowReminder] = useState(null);
-  const [error, setError] = useState("");
-  const [saveMsg, setSaveMsg] = useState("");
-  const [shareMsg, setShareMsg] = useState("");
-
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const shared = params.get("shared");
-      if (shared) {
-        const data = JSON.parse(atob(shared));
-        setGifts(data.gifts);
-        setForm(f => ({ ...f, occasion: data.occasion, relationship: data.relationship, budget: data.budget }));
-        setStep(2);
-      }
-    } catch {}
-  }, []);
-
-  function toggleInterest(interest) {
-    setForm(f => ({
-      ...f,
-      interests: f.interests.includes(interest)
-        ? f.interests.filter(i => i !== interest)
-        : f.interests.length < 4 ? [...f.interests, interest] : f.interests
-    }));
-  }
-
-  async function getRecommendations() {
-    if (!form.occasion || !form.relationship || !form.budget) { setError("Please fill in occasion, relationship, and budget."); return; }
-    if (!isPro && searches >= FREE_SEARCHES) { setShowPaywall(true); return; }
-    setError(""); setStep(1);
-    const prompt = `You are a thoughtful gift advisor. Suggest 6 specific, creative, and buyable gift ideas.
-Person details:
-- Occasion: ${form.occasion}
-- Relationship: ${form.relationship}
-- Budget: ${form.budget}
-- Age: ${form.age || "unknown"}
-- Interests: ${form.interests.length ? form.interests.join(", ") : "not specified"}
-- Notes: ${form.personality || "none"}
-Special note: if the occasion is "Kids Travel Entertainment", "Rainy Day Entertainment", or a siblings gift, tailor ideas specifically for that scenario.
-Return ONLY a valid JSON array (no markdown) with exactly this structure:
-[{"name":"Gift name","description":"2 sentence description","price":"Estimated price range","amazonQuery":"Amazon search query","emoji":"Single emoji"}]`;
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
-      });
-      const data = await res.json();
-      const text = data.content.map(b => b.text || "").join("");
-      const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
-      setGifts(parsed); setSearches(n => n + 1); setStep(2);
-    } catch { setError("Something went wrong. Please try again."); setStep(0); }
-  }
-
-  function saveList() {
-    if (!isPro) { setShowPaywall(true); return; }
-    setSavedLists(prev => [{ id: Date.now(), label: `${form.relationship} · ${form.occasion}`, gifts, savedAt: new Date().toLocaleDateString(), checked: [] }, ...prev]);
-    setSaveMsg("✓ Saved!"); setTimeout(() => setSaveMsg(""), 2500);
-  }
-
-  function shareList() {
-    if (!isPro) { setShowPaywall(true); return; }
-    try {
-      const payload = btoa(JSON.stringify({ gifts, occasion: form.occasion, relationship: form.relationship, budget: form.budget }));
-      navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?shared=${payload}`);
-      setShareMsg("✓ Link copied!"); setTimeout(() => setShareMsg(""), 3000);
-    } catch { setShareMsg("Could not copy."); setTimeout(() => setShareMsg(""), 3000); }
-  }
-
-  function toggleCheck(listId, giftName) {
-    setSavedLists(prev => prev.map(l => l.id !== listId ? l : { ...l, checked: l.checked.includes(giftName) ? l.checked.filter(g => g !== giftName) : [...l.checked, giftName] }));
-  }
-
-  function reset() {
-    setStep(0); setGifts([]);
-    setForm({ occasion: "", relationship: "", budget: "", age: "", interests: [], personality: "" });
-  }
-
-  const isFreeLimitHit = !isPro && searches >= FREE_SEARCHES;
-
-  return (
-    <div style={s.page}>
-      <div style={s.bgBlob1} /><div style={s.bgBlob2} />
-      {showPaywall && <ProModal onClose={() => setShowPaywall(false)} onUpgrade={() => { setIsPro(true); setShowPaywall(false); }} />}
-      {showReminder && <ReminderModal listLabel={showReminder} onClose={() => setShowReminder(null)} onSave={r => { setReminders(prev => [...prev, r]); setShowReminder(null); }} />}
-
-      <div style={s.container}>
-        <header style={s.header}>
-          <div style={s.logoRow}>
-            <svg style={s.logoIcon} viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
-              <rect width="56" height="56" rx="12" fill="#2d1a0e"/>
-              <rect x="8" y="30" width="40" height="20" rx="3" fill="#fdf6ee" stroke="#2d1a0e" strokeWidth="2"/>
-              <rect x="8" y="18" width="40" height="15" rx="3" fill="#e8622a"/>
-              <rect x="24" y="18" width="8" height="32" fill="#f9c974"/>
-              <path d="M28 18 C28 18 17 12 13 5 C20 3 26 11 28 18Z" fill="#f9c974"/>
-              <path d="M28 18 C28 18 39 12 43 5 C36 3 30 11 28 18Z" fill="#fff" opacity="0.85"/>
-              <circle cx="28" cy="18" r="4" fill="#2d1a0e"/>
-            </svg>
-            <span style={s.logoText}>GiftGenius</span>
-            {isPro && <span style={s.proBadge}>👑 PRO</span>}
-          </div>
-          <p style={s.tagline}>AI-powered gift ideas they'll actually love</p>
-          {!isPro && (
-            <div style={s.usageBar}>
-              <div style={s.usageText}>{FREE_SEARCHES - searches > 0 ? `${FREE_SEARCHES - searches} free searches remaining` : "Free searches used up"}</div>
-              <div style={s.usageDots}>{[...Array(FREE_SEARCHES)].map((_, i) => <div key={i} style={{ ...s.usageDot, ...(i < searches ? s.usageDotUsed : {}) }} />)}</div>
-              <button onClick={() => setShowPaywall(true)} style={s.upgradeChip}>👑 Go Pro</button>
-            </div>
-          )}
-          <div style={s.tabs}>
-            <button onClick={() => setTab("find")} style={{ ...s.tabBtn, ...(tab === "find" ? s.tabActive : {}) }}>✨ Find Gifts</button>
-            <button onClick={() => setTab("saved")} style={{ ...s.tabBtn, ...(tab === "saved" ? s.tabActive : {}) }}>💾 Saved {savedLists.length > 0 && <span style={s.badge}>{savedLists.length}</span>}</button>
-            <button onClick={() => setTab("reminders")} style={{ ...s.tabBtn, ...(tab === "reminders" ? s.tabActive : {}) }}>🔔 Reminders {reminders.length > 0 && <span style={s.badge}>{reminders.length}</span>}</button>
-          </div>
-        </header>
-
-        {tab === "find" && (
-          <>
-            {step === 0 && (
-              <div style={s.card}>
-                {error && <div style={s.error}>{error}</div>}
-                {isFreeLimitHit && <div style={s.paywallBanner}>🎁 You've used your 3 free searches!<button onClick={() => setShowPaywall(true)} style={s.paywallBannerBtn}>Unlock Pro</button></div>}
-                <Section title="What's the occasion?"><ChipGroup options={occasions} value={form.occasion} onSelect={v => setForm(f => ({ ...f, occasion: v }))} /></Section>
-                <Section title="Who are you shopping for?"><ChipGroup options={relationships} value={form.relationship} onSelect={v => setForm(f => ({ ...f, relationship: v }))} /></Section>
-                <Section title="What's your budget?"><ChipGroup options={budgets} value={form.budget} onSelect={v => setForm(f => ({ ...f, budget: v }))} /></Section>
-                <Section title="Their age (optional)"><input type="number" placeholder="e.g. 35" value={form.age} onChange={e => setForm(f => ({ ...f, age: e.target.value }))} style={s.input} /></Section>
-                <Section title="Their interests (pick up to 4)"><MultiChip options={interests} selected={form.interests} onToggle={toggleInterest} max={4} /></Section>
-                <Section title="Anything else? (optional)"><textarea placeholder="e.g. She loves cozy nights in" value={form.personality} onChange={e => setForm(f => ({ ...f, personality: e.target.value }))} style={s.textarea} rows={3} /></Section>
-                <button onClick={getRecommendations} style={{ ...s.cta, ...(isFreeLimitHit ? s.ctaLocked : {}) }}>{isFreeLimitHit ? "👑 Unlock to Search" : "✨ Find Perfect Gifts"}</button>
-              </div>
-            )}
-            {step === 1 && <div style={s.loadingCard}><div style={s.spinner} /><p style={s.loadingText}>Finding the perfect gifts...</p><p style={s.loadingSubtext}>Our AI is thinking of ideas just for them 🎁</p></div>}
-            {step === 2 && (
-              <div>
-                <div style={s.resultsHeader}><h2 style={s.resultsTitle}>🎉 Here are your gift ideas!</h2><p style={s.resultsSubtitle}>For {form.relationship} · {form.occasion} · {form.budget}</p></div>
-                <div style={s.giftGrid}>
-                  {gifts.map((gift, i) => (
-                    <div key={i} style={s.giftCard}>
-                      <div style={s.giftEmoji}>{gift.emoji}</div>
-                      <div style={s.giftContent}>
-                        <div style={s.giftName}>{gift.name}</div>
-                        <div style={s.giftPrice}>{gift.price}</div>
-                        <div style={s.giftDesc}>{gift.description}</div>
-                        <AmazonLink query={gift.amazonQuery} tag={AFFILIATE_TAG} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={s.proActionBar}>
-                  <button onClick={saveList} style={s.proActionBtn}>{isPro ? "💾 Save List" : "💾 Save List 👑"}</button>
-                  <button onClick={shareList} style={s.proActionBtn}>{isPro ? "🔗 Share Link" : "🔗 Share 👑"}</button>
-                  <button onClick={() => isPro ? setShowReminder(`${form.relationship} · ${form.occasion}`) : setShowPaywall(true)} style={s.proActionBtn}>{isPro ? "🔔 Reminder" : "🔔 Remind 👑"}</button>
-                </div>
-                {saveMsg && <div style={s.feedbackMsg}>{saveMsg}</div>}
-                {shareMsg && <div style={s.feedbackMsg}>{shareMsg}</div>}
-                <button onClick={reset} style={s.resetBtn}>🔄 Search Again</button>
-              </div>
-            )}
-          </>
-        )}
-
-        {tab === "saved" && (
-          !isPro ? (
-            <div style={s.proGate}><div style={s.proGateIcon}>💾</div><div style={s.proGateTitle}>Save Gift Lists with Pro</div><p style={s.proGateDesc}>Keep a wishlist for everyone you love. Check off gifts as you buy them.</p><button onClick={() => setShowPaywall(true)} style={s.cta}>👑 Unlock Pro — {PRO_PRICE}</button></div>
-          ) : savedLists.length === 0 ? (
-            <div style={s.emptyState}><div style={s.emptyIcon}>💾</div><div style={s.emptyTitle}>No saved lists yet</div><p style={s.emptyDesc}>Find gift ideas and tap Save List to keep them here.</p><button onClick={() => setTab("find")} style={s.cta}>✨ Find Gifts</button></div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              {savedLists.map(list => (
-                <div key={list.id} style={s.savedListCard}>
-                  <div style={s.savedListHeader}>
-                    <div><div style={s.savedListLabel}>{list.label}</div><div style={s.savedListDate}>Saved {list.savedAt} · {list.gifts.length} ideas · {list.checked.length} bought</div></div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button onClick={() => setShowReminder(list.label)} style={s.iconBtn}>🔔</button>
-                      <button onClick={() => setSavedLists(prev => prev.filter(l => l.id !== list.id))} style={s.iconBtn}>✕</button>
-                    </div>
-                  </div>
-                  <div style={s.savedGiftList}>
-                    {list.gifts.map((gift, i) => (
-                      <div key={i} style={{ ...s.savedGiftRow, ...(list.checked.includes(gift.name) ? s.savedGiftChecked : {}) }}>
-                        <button onClick={() => toggleCheck(list.id, gift.name)} style={s.checkBox}>{list.checked.includes(gift.name) ? "✓" : ""}</button>
-                        <div style={s.savedGiftEmoji}>{gift.emoji}</div>
-                        <div style={{ flex: 1 }}><div style={s.savedGiftName}>{gift.name}</div><div style={s.savedGiftPrice}>{gift.price}</div></div>
-                        <AmazonLink query={gift.amazonQuery} tag={AFFILIATE_TAG} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        )}
-
-        {tab === "reminders" && (
-          !isPro ? (
-            <div style={s.proGate}><div style={s.proGateIcon}>🔔</div><div style={s.proGateTitle}>Never Miss an Occasion</div><p style={s.proGateDesc}>Set reminders for birthdays, anniversaries, and holidays. We'll nudge you the day before.</p><button onClick={() => setShowPaywall(true)} style={s.cta}>👑 Unlock Pro — {PRO_PRICE}</button></div>
-          ) : reminders.length === 0 ? (
-            <div style={s.emptyState}><div style={s.emptyIcon}>🔔</div><div style={s.emptyTitle}>No reminders set</div><p style={s.emptyDesc}>After finding gifts, tap Reminder to set a date.</p><button onClick={() => setTab("find")} style={s.cta}>✨ Find Gifts</button></div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              {reminders.map((r, i) => (
-                <div key={i} style={s.reminderCard}>
-                  <div style={{ fontSize: "28px" }}>🔔</div>
-                  <div style={{ flex: 1 }}><div style={s.reminderName}>{r.name || r.label}</div><div style={s.reminderDate}>📅 {r.date}</div></div>
-                  <button onClick={() => setReminders(prev => prev.filter((_, idx) => idx !== i))} style={s.iconBtn}>✕</button>
-                </div>
-              ))}
-              <button onClick={() => setShowReminder("New reminder")} style={{ ...s.resetBtn, marginTop: "8px" }}>+ Add Another Reminder</button>
-            </div>
-          )
-        )}
-
-        <footer style={s.footer}>As an Amazon Associate, GiftGenius earns from qualifying purchases.</footer>
-      </div>
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes modalIn { from { opacity:0; transform:translateY(30px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
-        @keyframes overlayIn { from { opacity:0; } to { opacity:1; } }
-      `}</style>
-    </div>
-  );
-}
-
-const s = {
-  page: { minHeight: "100vh", background: "linear-gradient(135deg, #fdf6ee 0%, #fce8d5 100%)", fontFamily: "'DM Sans', sans-serif", position: "relative", overflow: "hidden", padding: "24px 16px 48px" },
-  bgBlob1: { position: "fixed", top: "-120px", right: "-120px", width: "400px", height: "400px", background: "radial-gradient(circle, #f9c97488 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none", zIndex: 0 },
-  bgBlob2: { position: "fixed", bottom: "-100px", left: "-100px", width: "350px", height: "350px", background: "radial-gradient(circle, #f28b5066 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none", zIndex: 0 },
-  container: { maxWidth: "700px", margin: "0 auto", position: "relative", zIndex: 1 },
-  header: { textAlign: "center", marginBottom: "28px" },
-  logoRow: { displ
+function AmazonLink({query,tag}){const url=`https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${tag}`;return <a href={url} target="_blank" rel="noopener noreferrer" style={s.buyBtn}>🛒 Find on Amazon</a>;}
+function Section({title,children}){return <div style={s.section}><div style={s.sectionTitle}>{title}</div>{children}</div>;}
+function ChipGroup({options,value,onSelect}){return <div style={s.chipGrid}>{options.map(o=><button key={o} onClick={()=>onSelect(o)} style={{...s.chip,...(value===o?s.chipActive:{})}}>{o}</button>)}</div>;}
+function MultiChip({options,selected,onToggle,max}){return <div style={s.chipGrid}>{options.map(o=><button key={o} onClick={()=>onToggle(o)} style={{...s.chip,...(selected.includes(o)?s.chipActive:{})}}>{o}</button>)}{max&&<div style={s.chipHint}>Pick up to {max}</div>}</div>;}
+function ProModal({onClose,onUpgrade}){return(<div style={s.overlay}><div style={s.modal}><div style={s.modalGlow}/><button onClick={onClose} style={s.modalClose}>✕</button><div style={s.proIcon}>👑</div><h2 style={s.proTitle}>Unlock GiftGenius Pro</h2><p style={s.proSub}>You've used your <strong>3 free searches</strong>. Upgrade to Pro and never stress about gifts again.</p><div style={s.proFeatureGrid}>{PRO_FEATURES.map(f=><div key={f.title} style={s.proFeatureRow}><span style={s.proFeatureIcon}>{f.icon}</span><div><div style={s.proFeatureName}>{f.title}</div><div style={s.proFeatureDesc}>{f.desc}</div></div></div>)}</div><div style={s.proPriceBox}><div style={s.proPriceLabel}>Everything above for just</div><div style={s.proPrice}>{PRO_PRICE}</div><div style={s.proPriceSub}>Cancel any time. No hidden fees.</div></div><button onClick={onUpgrade} style={s.proUpgradeBtn}>👑 Start Pro — {PRO_PRICE}</button><button onClick={onClose} style={s.proSkipBtn}>Maybe later</button><p style={s.proFineprint}>🔒 Secure checkout · Instant access · 7-day money-back guarantee</p></div></div>);}
+function ReminderModal({listLabel,onClose,onSave}){const[date,setDate]=useState("");const[name,setName]=useState("");const[saved,setSaved]=useState(false);function handleSave(){if(!date)return;onSave({label:listLabel,name,date});setSaved(true);if("Notification"in window){Notification.requestPermission().then(perm=>{if(perm==="granted"){const ms=new Date(date).getTime()-Date.now()-24*60*60*1000;if(ms>0)setTimeout(()=>new Notification("🎁 GiftGenius Reminder",{body:`Don't forget — ${name||listLabel} is tomorrow!`}),ms);}});}}
+return(<div style={s.overlay}><div style={{...s.modal,maxWidth:"420px"}}><button onClick={onClose} style={s.modalClose}>✕</button>{!saved?(<><div style={{fontSize:"40px",marginBottom:"12px"}}>🔔</div><h2 style={s.proTitle}>Set a Reminder</h2><p style={{...s.proSub,marginBottom:"24px"}}>We'll remind you the day before so you have time to shop.</p><input placeholder="Who is it for?" value={name} onChange={e=>setName(e.target.value)} style={{...s.inputFull,marginBottom:"12px"}}/><input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{...s.inputFull,marginBottom:"20px"}}/><button onClick={handleSave} style={s.proUpgradeBtn} disabled={!date}>🔔 Set Reminder</button></>):(<><div style={{fontSize:"48px",marginBottom:"12px"}}>✅</div><h2 style={s.proTitle}>Reminder Set!</h2><p style={s.proSub}>We'll remind you the day before <strong>{name||"the occasion"}</strong> on <strong>{date}</strong>.</p><button onClick={onClose} style={{...s.proUpgradeBtn,marginTop:"20px"}}>Done</button></>)}</div></div>);}function GiftRecommender(){
+const[tab,setTab]=useState("find");
+const[step,setStep]=useState(0);
+const[form,setForm]=useState({occasion:"",relationship:"",budget:"",age:"",interests:[],personality:""});
+const[gifts,setGifts]=useState([]);
+const[savedLists,setSavedLists]=useState([]);
+const[reminders,setReminders]=useState([]);
+const[searches,setSearches]=useState(0);
+const[isPro,setIsPro]=useState(false);
+const[showPaywall,setShowPaywall]=useState(false);
+const[showReminder,setShowReminder]=useState(null);
+const[error,setError]=useState("");
+const[saveMsg,setSaveMsg]=useState("");
+const[shareMsg,setShareMsg]=useState("");
+useEffect(()=>{try{const params=new URLSearchParams(window.location.search);const shared=params.get("shared");if(shared){const data=JSON.parse(atob(shared));setGifts(data.gifts);setForm(f=>({...f,occasion:data.occasion,relationship:data.relationship,budget:data.budget}));setStep(2);}}catch{}},[]);
+function toggleInterest(interest){setForm(f=>({...f,interests:f.interests.includes(interest)?f.interests.filter(i=>i!==interest):f.interests.length<4?[...f.interests,interest]:f.interests}));}
+async function getRecommendations(){if(!form.occasion||!form.relationship||!form.budget){setError("Please fill in occasion, relationship, and budget.");return;}if(!isPro&&searches>=FREE_SEARCHES){setShowPaywall(true);return;}setError("");setStep(1);const prompt=`You are a thoughtful gift advisor. Suggest 6 specific, creative, and buyable gift ideas.\nPerson details:\n- Occasion: ${form.occasion}\n- Relationship: ${form.relationship}\n- Budget: ${form.budget}\n- Age: ${form.age||"unknown"}\n- Interests: ${form.interests.length?form.interests.join(", "):"not specified"}\n- Notes: ${form.personality||"none"}\nReturn ONLY a valid JSON array (no markdown) with exactly this structure:\n[{"name":"Gift name","description":"2 sentence description","price":"Estimated price range","amazonQuery":"Amazon search query","emoji":"Single emoji"}]`;
+try{const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});const data=await res.json();const text=data.content.map(b=>b.text||"").join("");const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());setGifts(parsed);setSearches(n=>n+1);setStep(2);}catch{setError("Something went wrong. Please try again.");setStep(0);}}
+function saveList(){if(!isPro){setShowPaywall(true);return;}setSavedLists(prev=>[{id:Date.now(),label:`${form.relationship} · ${form.occasion}`,gifts,savedAt:new Date().toLocaleDateString(),checked:[]}, ...prev]);setSaveMsg("✓ Saved!");setTimeout(()=>setSaveMsg(""),2500);}
+function shareList(){if(!isPro){setShowPaywall(true);return;}try{const payload=btoa(JSON.stringify({gifts,occasion:form.occasion,relationship:form.relationship,budget:form.budget}));navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?shared=${payload}`);setShareMsg("✓ Link copied!");setTimeout(()=>setShareMsg(""),3000);}catch{setShareMsg("Could not copy.");setTimeout(()=>setShareMsg(""),3000);}}
+function toggleCheck(listId,giftName){setSavedLists(prev=>prev.map(l=>l.id!==listId?l:{...l,checked:l.checked.includes(giftName)?l.checked.filter(g=>g!==giftName):[...l.checked,giftName]}));}
+function reset(){setStep(0);setGifts([]);setForm({occasion:"",relationship:"",budget:"",age:"",interests:[],personality:""});}
+const isFreeLimitHit=!isPro&&searches>=FREE_SEARCHES;
+return(<div style={s.page}><div style={s.bgBlob1}/><div style={s.bgBlob2}/>
+{showPaywall&&<ProModal onClose={()=>setShowPaywall(false)} onUpgrade={()=>{setIsPro(true);setShowPaywall(false);}}/>}
+{showReminder&&<ReminderModal listLabel={showReminder} onClose={()=>setShowReminder(null)} onSave={r=>{setReminders(prev=>[...prev,r]);setShowReminder(null);}}/>}
+<div style={s.container}>
+<header style={s.header}>
+<div style={s.logoRow}>
+<svg style={s.logoIcon} viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg"><rect width="56" height="56" rx="12" fill="#2d1a0e"/><rect x="8" y="30" width="40" height="20" rx="3" fill="#fdf6ee" stroke="#2d1a0e" strokeWidth="2"/><rect x="8" y="18" width="40" height="15" rx="3" fill="#e8622a"/><rect x="24" y="18" width="8" height="32" fill="#f9c974"/><path d="M28 18 C28 18 17 12 13 5 C20 3 26 11 28 18Z" fill="#f9c974"/><path d="M28 18 C28 18 39 12 43 5 C36 3 30 11 28 18Z" fill="#fff" opacity="0.85"/><circle cx="28" cy="18" r="4" fill="#2d1a0e"/></svg>
+<span style={s.logoText}>GiftGenius</span>
+{isPro&&<span style={s.proBadge}>👑 PRO</span>}
+</div>
+<p style={s.tagline}>AI-powered gift ideas they'll actually love</p>
+{!isPro&&<div style={s.usageBar}><div style={s.usageText}>{FREE_SEARCHES-searches>0?`${FREE_SEARCHES-searches} free searches remaining`:"Free searches used up"}</div><div style={s.usageDots}>{[...Array(FREE_SEARCHES)].map((_,i)=><div key={i} style={{...s.usageDot,...(i<searches?s.usageDotUsed:{})}}/>)}</div><button onClick={()=>setShowPaywall(true)} style={s.upgradeChip}>👑 Go Pro</button></div>}
+<div style={s.tabs}>
+<button onClick={()=>setTab("find")} style={{...s.tabBtn,...(tab==="find"?s.tabActive:{})}}>✨ Find Gifts</button>
+<button onClick={()=>setTab("saved")} style={{...s.tabBtn,...(tab==="saved"?s.tabActive:{})}}>💾 Saved {savedLists.length>0&&<span style={s.badge}>{savedLists.length}</span>}</button>
+<button onClick={()=>setTab("reminders")} style={{...s.tabBtn,...(tab==="reminders"?s.tabActive:{})}}>🔔 Reminders {reminders.length>0&&<span style={s.badge}>{reminders.length}</span>}</button>
+</div>
+</header>
+{tab==="find"&&(<>{step===0&&(<div style={s.card}>{error&&<div style={s.error}>{error}</div>}{isFreeLimitHit&&<div style={s.paywallBanner}>🎁 You've used your 3 free searches!<button onClick={()=>setShowPaywall(true)} style={s.paywallBannerBtn}>Unlock Pro</button></div>}<Section title="What's the occasion?"><ChipGroup options={occasions} value={form.occasion} onSelect={v=>setForm(f=>({...f,occasion:v}))}/></Section><Section title="Who are you shopping for?"><ChipGroup options={relationships} value={form.relationship} onSelect={v=>setForm(f=>({...f,relationship:v}))}/></Section><Section title="What's your budget?"><ChipGroup options={budgets} value={form.budget} onSelect={v=>setForm(f=>({...f,budget:v}))}/></Section><Section title="Their age (optional)"><input type="number" placeholder="e.g. 35" value={form.age} onChange={e=>setForm(f=>({...f,age:e.target.value}))} style={s.input}/></Section><Section title="Their interests (pick up to 4)"><MultiChip options={interests} selected={form.interests} onToggle={toggleInterest} max={4}/></Section><Section title="Anything else? (optional)"><textarea placeholder="e.g. She loves cozy nights in" value={form.personality} onChange={e=>setForm(f=>({...f,personality:e.target.value}))} style={s.textarea} rows={3}/></Section><button onClick={getRecommendations} style={{...s.cta,...(isFreeLimitHit?s.ctaLocked:{})}}>{isFreeLimitHit?"👑 Unlock to Search":"✨ Find Perfect Gifts"}</button></div>)}
+{step===1&&<div style={s.loadingCard}><div style={s.spinner}/><p style={s.loadingText}>Finding the perfect gifts...</p><p style={s.loadingSubtext}>Our AI is thinking of ideas just for them 🎁</p></div>}
+{step===2&&(<div><div style={s.resultsHeader}><h2 style={s.resultsTitle}>🎉 Here are your gift ideas!</h2><p style={s.resultsSubtitle}>For {form.relationship} · {form.occasion} · {form.budget}</p></div><div style={s.giftGrid}>{gifts.map((gift,i)=><div key={i} style={s.giftCard}><div style={s.giftEmoji}>{gift.emoji}</div><div style={s.giftContent}><div style={s.giftName}>{gift.name}</div><div style={s.giftPrice}>{gift.price}</div><div style={s.giftDesc}>{gift.description}</div><AmazonLink query={gift.amazonQuery} tag={AFFILIATE_TAG}/></div></div>)}</div><div style={s.proActionBar}><button onClick={saveList} style={s.proActionBtn}>{isPro?"💾 Save List":"💾 Save List 👑"}</button><button onClick={shareList} style={s.proActionBtn}>{isPro?"🔗 Share Link":"🔗 Share 👑"}</button><button onClick={()=>isPro?setShowReminder(`${form.relationship} · ${form.occasion}`):setShowPaywall(true)} style={s.proActionBtn}>{isPro?"🔔 Reminder":"🔔 Remind 👑"}</button></div>{saveMsg&&<div style={s.feedbackMsg}>{saveMsg}</div>}{shareMsg&&<div style={s.feedbackMsg}>{shareMsg}</div>}<button onClick={reset} style={s.resetBtn}>🔄 Search Again</button></div>)}
+</>)}
+{tab==="saved"&&(!isPro?<div style={s.proGate}><div style={s.proGateIcon}>💾</div><div style={s.proGateTitle}>Save Gift Lists with Pro</div><p style={s.proGateDesc}>Keep a wishlist for everyone you love.</p><button onClick={()=>setShowPaywall(true)} style={s.cta}>👑 Unlock Pro — {PRO_PRICE}</button></div>:savedLists.length===0?<div style={s.emptyState}><div style={s.emptyIcon}>💾</div><div style={s.emptyTitle}>No saved lists yet</div><p style={s.emptyDesc}>Find gift ideas and tap Save List to keep them here.</p><button onClick={()=>setTab("find")} style={s.cta}>✨ Find Gifts</button></div>:<div style={{display:"flex",flexDirection:"column",gap:"20px"}}>{savedLists.map(list=><div key={list.id} style={s.savedListCard}><div style={s.savedListHeader}><div><div style={s.savedListLabel}>{list.label}</div><div style={s.savedListDate}>Saved {list.savedAt} · {list.gifts.length} ideas · {list.checked.length} bought</div></div><div style={{display:"flex",gap:"8px"}}><button onClick={()=>setShowReminder(list.label)} style={s.iconBtn}>🔔</button><button onClick={()=>setSavedLists(prev=>prev.filter(l=>l.id!==list.id))} style={s.iconBtn}>✕</button></div></div><div style={s.savedGiftList}>{list.gifts.map((gift,i)=><div key={i} style={{...s.savedGiftRow,...(list.checked.includes(gift.name)?s.savedGiftChecked:{})}}><button onClick={()=>toggleCheck(list.id,gift.name)} style={s.checkBox}>{list.checked.includes(gift.name)?"✓":""}</button><div style={s.savedGiftEmoji}>{gift.emoji}</div><div style={{flex:1}}><div style={s.savedGiftName}>{gift.name}</div><div style={s.savedGiftPrice}>{gift.price}</div></div><AmazonLink query={gift.amazonQuery} tag={AFFILIATE_TAG}/></div>)}</div></div>)}</div>)}
+{tab==="reminders"&&(!isPro?<div style={s.proGate}><div style={s.proGateIcon}>🔔</div><div style={s.proGateTitle}>Never Miss an Occasion</div><p style={s.proGateDesc}>Set reminders for birthdays and holidays.</p><button onClick={()=>setShowPaywall(true)} style={s.cta}>👑 Unlock Pro — {PRO_PRICE}</button></div>:reminders.length===0?<div style={s.emptyState}><div style={s.emptyIcon}>🔔</div><div style={s.emptyTitle}>No reminders set</div><p style={s.emptyDesc}>After finding gifts, tap Reminder to set a date.</p><button onClick={()=>setTab("find")} style={s.cta}>✨ Find Gifts</button></div>:<div style={{display:"flex",flexDirection:"column",gap:"14px"}}>{reminders.map((r,i)=><div key={i} style={s.reminderCard}><div style={{fontSize:"28px"}}>🔔</div><div style={{flex:1}}><div style={s.reminderName}>{r.name||r.label}</div><div style={s.reminderDate}>📅 {r.date}</div></div><button onClick={()=>setReminders(prev=>prev.filter((_,idx)=>idx!==i))} style={s.iconBtn}>✕</button></div>)}<button onClick={()=>setShowReminder("New reminder")} style={{...s.resetBtn,marginTop:"8px"}}>+ Add Another Reminder</button></div>)}
+<footer style={s.footer}>As an Amazon Associate, GiftGenius earns from qualifying purchases.</footer>
+</div>
+<style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap');*{box-sizing:border-box;margin:0;padding:0;}@keyframes spin{to{transform:rotate(360deg);}}@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}@keyframes modalIn{from{opacity:0;transform:translateY(30px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}`}</style>
+</div>);}
+const s={page:{minHeight:"100vh",background:"linear-gradient(135deg,#fdf6ee 0%,#fce8d5 100%)",fontFamily:"'DM Sans',sans-serif",position:"relative",overflow:"hidden",padding:"24px 16px 48px"},bgBlob1:{position:"fixed",top:"-120px",right:"-120px",width:"400px",height:"400px",background:"radial-gradient(circle,#f9c97488 0%,transparent 70%)",borderRadius:"50%",pointerEvents:"none",zIndex:0},bgBlob2:{position:"fixed",bottom:"-100px",left:"-100px",width:"350px",height:"350px",background:"radial-gradient(circle,#f28b5066 0%,transparent 70%)",borderRadius:"50%",pointerEvents:"none",zIndex:0},container:{maxWidth:"700px",margin:"0 auto",position:"relative",zIndex:1},header:{textAlign:"center",marginBottom:"28px"},logoRow:{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px",marginBottom:"6px"},logoIcon:{width:"36px",height:"36px",flexShrink:0},logoText:{fontFamily:"'Playfair Display',serif",fontSize:"28px",fontWeight:"700",color:"#2d1a0e",letterSpacing:"-0.5px"},proBadge:{background:"linear-gradient(135deg,#f9c974,#e8622a)",color:"#fff",borderRadius:"100px",padding:"3px 10px",fontSize:"12px",fontWeight:"700"},tagline:{color:"#7a5c44",fontSize:"15px",fontWeight:"500",marginBottom:"14px"},usageBar:{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"},usageText:{fontSize:"13px",color:"#7a5c44",fontWeight:"500"},usageDots:{display:"flex",gap:"5px"},usageDot:{width:"10px",height:"10px",borderRadius:"50%",background:"#e8d5be"},usageDotUsed:{background:"#e8622a"},upgradeChip:{background:"linear-gradient(135deg,#f9c974,#e8622a)",color:"#fff",border:"none",borderRadius:"100px",padding:"4px 12px",fontSize:"12px",fontWeight:"700",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},tabs:{display:"inline-flex",background:"#fff",borderRadius:"100px",padding:"4px",border:"1px solid #f0dfc8",gap:"4px",flexWrap:"wrap",justifyContent:"center"},tabBtn:{padding:"8px 16px",borderRadius:"100px",border:"none",background:"transparent",color:"#7a5c44",fontSize:"13px",fontWeight:"500",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:"5px"},tabActive:{background:"#e8622a",color:"#fff"},badge:{background:"rgba(255,255,255,0.3)",borderRadius:"100px",padding:"1px 6px",fontSize:"11px",fontWeight:"700"},card:{background:"#fff",borderRadius:"24px",padding:"28px 24px",boxShadow:"0 8px 40px rgba(100,60,20,0.10)",border:"1px solid #f0dfc8"},error:{background:"#fff0ee",color:"#c0392b",borderRadius:"10px",padding:"10px 14px",marginBottom:"16px",fontSize:"14px"},paywallBanner:{background:"linear-gradient(135deg,#2d1a0e,#5c3d1e)",color:"#f9c974",borderRadius:"12px",padding:"12px 16px",marginBottom:"20px",fontSize:"14px",fontWeight:"600",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",flexWrap:"wrap"},paywallBannerBtn:{background:"#e8622a",color:"#fff",border:"none",borderRadius:"100px",padding:"6px 14px",fontSize:"13px",fontWeight:"700",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},section:{marginBottom:"22px"},sectionTitle:{fontWeight:"600",fontSize:"14px",color:"#2d1a0e",marginBottom:"10px"},chipGrid:{display:"flex",flexWrap:"wrap",gap:"7px"},chipHint:{fontSize:"12px",color:"#a07850",width:"100%",marginTop:"4px"},chip:{padding:"6px 13px",borderRadius:"100px",border:"1.5px solid #e8d5be",background:"#fdf6ee",color:"#5c3d1e",fontSize:"12px",fontWeight:"500",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},chipActive:{background:"#e8622a",color:"#fff",border:"1.5px solid #e8622a"},input:{width:"120px",padding:"10px 14px",borderRadius:"12px",border:"1.5px solid #e8d5be",fontSize:"14px",fontFamily:"'DM Sans',sans-serif",color:"#2d1a0e",background:"#fdf6ee",outline:"none"},inputFull:{width:"100%",padding:"12px 14px",borderRadius:"12px",border:"1.5px solid #e8d5be",fontSize:"14px",fontFamily:"'DM Sans',sans-serif",color:"#2d1a0e",background:"#fdf6ee",outline:"none",display:"block"},textarea:{width:"100%",padding:"12px 14px",borderRadius:"12px",border:"1.5px solid #e8d5be",fontSize:"14px",fontFamily:"'DM Sans',sans-serif",color:"#2d1a0e",background:"#fdf6ee",outline:"none",resize:"vertical"},cta:{width:"100%",padding:"15px",background:"linear-gradient(135deg,#e8622a,#c94a14)",color:"#fff",border:"none",borderRadius:"14px",fontSize:"15px",fontWeight:"600",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 4px 16px rgba(232,98,42,0.35)"},ctaLocked:{background:"linear-gradient(135deg,#a07850,#7a5c44)",boxShadow:"none"},loadingCard:{background:"#fff",borderRadius:"24px",padding:"64px 32px",textAlign:"center",boxShadow:"0 8px 40px rgba(100,60,20,0.10)",border:"1px solid #f0dfc8"},spinner:{width:"44px",height:"44px",border:"4px solid #f0dfc8",borderTop:"4px solid #e8622a",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 20px"},loadingText:{fontSize:"20px",fontWeight:"600",color:"#2d1a0e",marginBottom:"8px"},loadingSubtext:{fontSize:"14px",color:"#7a5c44"},resultsHeader:{textAlign:"center",marginBottom:"20px"},resultsTitle:{fontFamily:"'Playfair Display',serif",fontSize:"26px",color:"#2d1a0e",marginBottom:"4px"},resultsSubtitle:{color:"#7a5c44",fontSize:"13px",fontWeight:"500"},giftGrid:{display:"flex",flexDirection:"column",gap:"12px"},giftCard:{background:"#fff",borderRadius:"18px",padding:"18px",display:"flex",gap:"14px",alignItems:"flex-start",boxShadow:"0 4px 20px rgba(100,60,20,0.08)",border:"1px solid #f0dfc8",animation:"fadeUp 0.4s ease both"},giftEmoji:{fontSize:"32px",lineHeight:1,flexShrink:0,marginTop:"2px"},giftContent:{flex:1},giftName:{fontWeight:"700",fontSize:"15px",color:"#2d1a0e",marginBottom:"2px"},giftPrice:{fontSize:"12px",color:"#e8622a",fontWeight:"600",marginBottom:"6px"},giftDesc:{fontSize:"13px",color:"#5c3d1e",lineHeight:"1.5",marginBottom:"10px"},buyBtn:{display:"inline-block",background:"#232f3e",color:"#f0c040",padding:"7px 14px",borderRadius:"8px",textDecoration:"none",fontSize:"12px",fontWeight:"600",fontFamily:"'DM Sans',sans-serif"},proActionBar:{display:"flex",gap:"10px",marginTop:"20px",flexWrap:"wrap"},proActionBtn:{flex:1,padding:"12px 10px",background:"#fff",border:"1.5px solid #e8d5be",borderRadius:"12px",fontSize:"13px",fontWeight:"600",color:"#2d1a0e",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",minWidth:"100px"},feedbackMsg:{textAlign:"center",marginTop:"10px",color:"#2d7a3a",fontWeight:"600",fontSize:"14px"},resetBtn:{display:"block",margin:"20px auto 0",padding:"11px 28px",background:"transparent",border:"2px solid #e8622a",color:"#e8622a",borderRadius:"100px",fontSize:"14px",fontWeight:"600",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},emptyState:{background:"#fff",borderRadius:"24px",padding:"56px 32px",textAlign:"center",boxShadow:"0 8px 40px rgba(100,60,20,0.10)",border:"1px solid #f0dfc8"},emptyIcon:{fontSize:"44px",marginBottom:"14px"},emptyTitle:{fontSize:"20px",fontWeight:"700",color:"#2d1a0e",marginBottom:"8px"},emptyDesc:{fontSize:"14px",color:"#7a5c44",marginBottom:"24px"},savedListCard:{background:"#fff",borderRadius:"20px",padding:"22px",boxShadow:"0 4px 20px rgba(100,60,20,0.08)",border:"1px solid #f0dfc8"},savedListHeader:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"14px"},savedListLabel:{fontWeight:"700",fontSize:"16px",color:"#2d1a0e",marginBottom:"3px"},savedListDate:{fontSize:"12px",color:"#7a5c44"},savedGiftList:{display:"flex",flexDirection:"column",gap:"8px"},savedGiftRow:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 11px",borderRadius:"11px",background:"#fdf6ee",border:"1px solid #f0dfc8"},savedGiftChecked:{opacity:0.4},checkBox:{width:"22px",height:"22px",borderRadius:"6px",border:"2px solid #c8a87a",background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:"13px",fontWeight:"700",color:"#2d7a3a",flexShrink:0,fontFamily:"'DM Sans',sans-serif"},savedGiftEmoji:{fontSize:"20px",flexShrink:0},savedGiftName:{fontWeight:"600",fontSize:"13px",color:"#2d1a0e"},savedGiftPrice:{fontSize:"11px",color:"#e8622a",fontWeight:"500"},iconBtn:{background:"none",border:"none",color:"#b89880",fontSize:"15px",cursor:"pointer",padding:"4px 6px"},reminderCard:{background:"#fff",borderRadius:"16px",padding:"18px 20px",display:"flex",alignItems:"center",gap:"14px",boxShadow:"0 4px 16px rgba(100,60,20,0.07)",border:"1px solid #f0dfc8"},reminderName:{fontWeight:"600",fontSize:"15px",color:"#2d1a0e",marginBottom:"3px"},reminderDate:{fontSize:"13px",color:"#7a5c44"},proGate:{background:"#fff",borderRadius:"24px",padding:"48px 28px",textAlign:"center",boxShadow:"0 8px 40px rgba(100,60,20,0.10)",border:"1px solid #f0dfc8"},proGateIcon:{fontSize:"48px",marginBottom:"14px"},proGateTitle:{fontSize:"22px",fontWeight:"700",color:"#2d1a0e",marginBottom:"10px"},proGateDesc:{fontSize:"14px",color:"#7a5c44",marginBottom:"28px",lineHeight:"1.6",maxWidth:"360px",margin:"0 auto 28px"},overlay:{position:"fixed",inset:0,background:"rgba(20,10,5,0.7)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"},modal:{background:"#fff",borderRadius:"28px",padding:"36px 28px",maxWidth:"520px",width:"100%",position:"relative",boxShadow:"0 32px 80px rgba(0,0,0,0.3)",maxHeight:"90vh",overflowY:"auto"},modalGlow:{position:"absolute",top:"-60px",left:"50%",transform:"translateX(-50%)",width:"200px",height:"120px",background:"radial-gradient(circle,#f9c97470 0%,transparent 70%)",pointerEvents:"none"},modalClose:{position:"absolute",top:"16px",right:"16px",background:"#f0dfc8",border:"none",borderRadius:"50%",width:"30px",height:"30px",cursor:"pointer",fontSize:"14px",color:"#5c3d1e",fontFamily:"'DM Sans',sans-serif",fontWeight:"700"},proIcon:{fontSize:"44px",textAlign:"center",marginBottom:"10px"},proTitle:{fontFamily:"'Playfair Display',serif",fontSize:"26px",fontWeight:"700",color:"#2d1a0e",textAlign:"center",marginBottom:"10px"},proSub:{fontSize:"14px",color:"#7a5c44",textAlign:"center",lineHeight:"1.6",marginBottom:"24px"},proFeatureGrid:{display:"flex",flexDirection:"column",gap:"14px",marginBottom:"24px"},proFeatureRow:{display:"flex",gap:"14px",alignItems:"flex-start",padding:"14px",background:"#fdf6ee",borderRadius:"14px",border:"1px solid #f0dfc8"},proFeatureIcon:{fontSize:"24px",flexShrink:0},proFeatureName:{fontWeight:"700",fontSize:"14px",color:"#2d1a0e",marginBottom:"3px"},proFeatureDesc:{fontSize:"13px",color:"#7a5c44",lineHeight:"1.5"},proPriceBox:{background:"linear-gradient(135deg,#2d1a0e,#5c3d1e)",borderRadius:"18px",padding:"20px",textAlign:"center",marginBottom:"16px"},proPriceLabel:{fontSize:"13px",color:"rgba(255,255,255,0.6)",marginBottom:"4px"},proPrice:{fontFamily:"'Playfair Display',serif",fontSize:"44px",fontWeight:"700",color:"#f9c974",lineHeight:1,marginBottom:"4px"},proPriceSub:{fontSize:"12px",color:"rgba(255,255,255,0.5)"},proUpgradeBtn:{width:"100%",padding:"16px",background:"linear-gradient(135deg,#f9c974,#e8622a)",color:"#fff",border:"none",borderRadius:"14px",fontSize:"16px",fontWeight:"700",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",marginBottom:"10px",boxShadow:"0 6px 20px rgba(232,98,42,0.4)"},proSkipBtn:{width:"100%",padding:"12px",background:"transparent",border:"none",color:"#b89880",fontSize:"14px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},proFineprint:{fontSize:"12px",color:"#b89880",textAlign:"center",marginTop:"8px"},footer:{textAlign:"center",marginTop:"32px",fontSize:"12px",color:"#b89880"}};
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<GiftRecommender/>);
+</script>
+</body>
+</html>
