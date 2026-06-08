@@ -56,10 +56,11 @@ const prompt=`You are a thoughtful gift advisor. Suggest 6 specific, creative, a
 try{
 const res=await fetch("/api/groq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"llama3-70b-8192",messages:[{role:"user",content:prompt}],temperature:0.7})});
 const data=await res.json();
+if(!data.choices){setError("API error: "+JSON.stringify(data));setStep(0);return;}
 const text=data.choices[0].message.content;
 const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
 setGifts(parsed);setSearches(n=>n+1);setStep(2);
-}catch(e){setError("Something went wrong. Please try again.");setStep(0);}}
+}catch(e){setError("Error: "+e.message);setStep(0);}}
 function saveList(){if(!isPro){setShowPaywall(true);return;}setSavedLists(prev=>[{id:Date.now(),label:`${form.relationship} · ${form.occasion}`,gifts,savedAt:new Date().toLocaleDateString(),checked:[]},...prev]);setSaveMsg("✓ Saved!");setTimeout(()=>setSaveMsg(""),2500);}
 function shareList(){if(!isPro){setShowPaywall(true);return;}try{const payload=btoa(JSON.stringify({gifts,occasion:form.occasion,relationship:form.relationship,budget:form.budget}));navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?shared=${payload}`);setShareMsg("✓ Link copied!");setTimeout(()=>setShareMsg(""),3000);}catch{setShareMsg("Could not copy.");setTimeout(()=>setShareMsg(""),3000);}}
 function toggleCheck(listId,giftName){setSavedLists(prev=>prev.map(l=>l.id!==listId?l:{...l,checked:l.checked.includes(giftName)?l.checked.filter(g=>g!==giftName):[...l.checked,giftName]}));}
