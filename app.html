@@ -16,15 +16,19 @@
 const { useState, useEffect } = React;
 const AFFILIATE_TAGS = {
   us: { tag: "giftgenius0de-20", domain: "www.amazon.com" },
-  uk: { tag: "giftgenius008-21", domain: "www.amazon.co.uk" },
+  ca: { tag: "giftgenius0de-20", domain: "www.amazon.ca" },
+  gb: { tag: "giftgenius008-21", domain: "www.amazon.co.uk" },
   ie: { tag: "giftgenius008-21", domain: "www.amazon.co.uk" },
   de: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
-  pt: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
-  es: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
-  fr: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
-  it: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
-  nl: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
-  be: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
+  at: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
+  ch: { tag: "giftgenius0f3-21", domain: "www.amazon.de" },
+  es: { tag: "giftgenius058-21", domain: "www.amazon.es" },
+  pt: { tag: "giftgenius058-21", domain: "www.amazon.es" },
+  fr: { tag: "giftgenius0f3-21", domain: "www.amazon.fr" },
+  it: { tag: "giftgenius0f3-21", domain: "www.amazon.it" },
+  nl: { tag: "giftgenius0f3-21", domain: "www.amazon.nl" },
+  be: { tag: "giftgenius0f3-21", domain: "www.amazon.nl" },
+  au: { tag: "giftgenius0de-20", domain: "www.amazon.com.au" },
   default: { tag: "giftgenius0de-20", domain: "www.amazon.com" }
 };
 async function getAffiliateInfo(){
